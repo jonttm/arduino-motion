@@ -1,9 +1,10 @@
 /*
 The Ultimate Alarm System!
 By JTTM (Jonathan Currier)
-Version 1.2 Stable
+Version 1.3 Dev 1
 
 Changelog:
+1.3_1 - Added IR Remote Input that doesn't work
 1.2_4 - Added a bunch of text.
 1.2_3 - Small bug fixes.
 1.2_2 - Fixed the set mode.
@@ -15,6 +16,8 @@ Changelog:
 1.0_1 - Made a motion sensor alarm.
 
 Stuff Required:
+- IR Sensor
+- IR Remote
 - PIR Motion Sensor
 - 5 Buttons
 - RGB LED
@@ -26,6 +29,7 @@ Stuff Required:
 - 6 Resistors
 
 Setup:
+Install the IR Remote library.
 Make a nice row of 4 buttons (this will be your keypad) and put button 5 off to the side (set button).
 Setup everything else how ya like.
 
@@ -37,12 +41,13 @@ int greenPin = 10;      // Green Pin
 int bluePin = 9;        // Blue Pin
 
 // Please uncomment the line below if your LED is a Common Anode.
-// #define COMMON_ANODE
+#define COMMON_ANODE
 
 // Motion and Sound Pins
 int motion = 2;         // Motion Sensor Pin
 int sound = 7;          // Speaker Pin
 int sound2 = 4;         // Buzzer Pin
+int remote = 3;         // IR Sensor
 
 // Button Pins
 int button1 = 13;       // First Button
@@ -50,6 +55,11 @@ int button2 = 12;       // Second Button
 int button3 = 8;        // Third Button
 int button4 = 6;        // Fourth Button
 int buttonset = 5;      // Button used to trigger set mode
+int remote1 = 0xFD08F7; // Remote Button1
+int remote2 = 0xFD8877; // Remote Button2
+int remote3 = 0xFD48B7; // Remote Button3
+int remote4 = 0xFD28D7; // Remote Button4
+int remoteset = 0xFD20DF; // Remote ButtonSet
 
 // Default Code (When Arduino is reset)
 int code1 = button1;    // First Code
@@ -70,6 +80,9 @@ int set3 = 0;
 int set4 = 0;
 int correct = 0;
 int done = 0;
+#include <IRremote.h>    // This isn't a variable
+IRrecv irrecv(remote);   // Neither is this
+decode_results results;  // Also, this
 // Seriously, don't touch.
 
 void setup() {
@@ -80,8 +93,204 @@ void setup() {
   pinMode(motion, INPUT);       // Except this one
   pinMode(sound, OUTPUT);
   Serial.begin(9600);           // Start Serial Connection
+  irrecv.enableIRIn();          // Start IR Reciever
 }
 void loop() {
+  // This stuff happens when IR is triggered:
+  if (irrecv.decode(&results)) {
+    irrecv.resume(); // Recieve the IR Value
+      // If someone pushes the set button:
+  if (results.value == remoteset) {
+    if (pass1 == 0) {
+      if (state == 0) {
+        Serial.println("Please enter old code!");
+        setColor(0, 0, 255);                  // More Sounds and Lights
+        digitalWrite(sound2, HIGH);
+        delay(50);
+        setColor(0, 0, 0);
+        digitalWrite(sound2, LOW);
+        delay(30);
+        setColor(0, 0, 255);
+        digitalWrite(sound2, HIGH);
+        delay(50);
+        setColor(0, 0, 0);
+        digitalWrite(sound2, LOW);
+        delay(30);
+        setColor(0, 0, 255);
+        digitalWrite(sound2, HIGH);
+        delay(50);
+        setColor(0, 0, 0);
+        digitalWrite(sound2, LOW);
+        delay(30);
+        set = 1;
+      }
+    }
+    // Magical stuff happens when buttons are pressed:
+    if (pass1 == 1) {
+      Serial.println("You can not set while disarming or arming!");
+      setColor(255, 0, 0);                // A BIG BRIGHT No
+      digitalWrite(sound2, HIGH);
+      delay(3000);
+      setColor(0, 0, 0);
+      digitalWrite(sound2, LOW);
+    }
+  }
+    // Setting this cool new code:
+  if (correct == 1) {
+      if (results.value == remote1) {
+        if (set1 == 0) {                                      // Button1 set to Code1
+          Serial.println("Code1 Set to Button1");
+          set1 = 1;
+          code1 = button1;
+          setColor(0, 0, 0);
+          digitalWrite(sound2, HIGH);
+          delay(500);
+        }
+        else {
+          if (set2 == 0) {                                    // Button1 set to Code2
+            Serial.println("Code2 Set to Button1");
+            set2 = 1;
+            code2 = button1;
+            setColor(0, 0, 0);
+            digitalWrite(sound2, HIGH);
+            delay(500);
+          }
+          else {
+            if (set3 == 0) {                                  // Button1 set to Code3
+              Serial.println("Code3 Set to Button1");
+              set3 = 1;
+              code3 = button1;
+              setColor(0, 0, 0);
+              digitalWrite(sound2, HIGH);
+              delay(500);
+            }
+            else {                                            // Button1 set to Code4
+              if (set4 == 0) {                                      
+                Serial.println("Code4 Set to Button1");
+                set4 = 1;
+                code4 = button1;
+                done = 1;
+              }
+            }
+          }
+        }
+      }
+      if (results.value == remote2) {                       // Just like above except button2:
+        if (set1 == 0) {
+          Serial.println("Code1 Set to Button2");
+          set1 = 1;
+          code1 = button2;
+          setColor(0, 0, 0);
+          digitalWrite(sound2, HIGH);
+          delay(500);
+        }
+        else {
+          if (set2 == 0) {
+            Serial.println("Code2 Set to Button2");
+            set2 = 1;
+            code2 = button2;
+            setColor(0, 0, 0);
+            digitalWrite(sound2, HIGH);
+            delay(500);
+          }
+          else {
+            if (set3 == 0) {
+              Serial.println("Code3 Set to Button2");
+              set3 = 1;
+              code3 = button2;
+              setColor(0, 0, 0);
+              digitalWrite(sound2, HIGH);
+              delay(500);
+            }
+            else {
+              if (set4 == 0) {
+                Serial.println("Code4 Set to Button2");
+                set4 = 1;
+                code4 = button2;
+                done = 1;
+              }
+            }
+          }
+        }
+      }
+      if (results.value == remote3) {                               // Again, Button3
+        if (set1 == 0) {
+          Serial.println("Code1 Set to Button3");
+          set1 = 1;
+          code1 = button3;
+          setColor(0, 0, 0);
+          digitalWrite(sound2, HIGH);
+          delay(500);
+        }
+        else {
+          if (set2 == 0) {
+            Serial.println("Code2 Set to Button3");
+            set2 = 1;
+            code2 = button3;
+            setColor(0, 0, 0);
+            digitalWrite(sound2, HIGH);
+            delay(500);
+          }
+          else {
+            if (set3 == 0) {
+              Serial.println("Code3 Set to Button3");
+              set3 = 1;
+              code3 = button3;
+              setColor(0, 0, 0);
+              digitalWrite(sound2, HIGH);
+              delay(500);
+            }
+            else {
+              if (set4 == 0) {
+                Serial.println("Code4 Set to Button3");
+                set4 = 1;
+                code4 = button3;
+                done = 1;
+              }
+            }
+          }
+        }
+      }
+      if (results.value == remote4) {                           // Button4 Now
+        if (set1 == 0) {
+          Serial.println("Code1 Set to Button4");
+          set1 = 1;
+          code1 = button4;
+          setColor(0, 0, 0);
+          digitalWrite(sound2, HIGH);
+          delay(500);
+        }
+        else {
+          if (set2 == 0) {
+            Serial.println("Code2 Set to Button4");
+            set2 = 1;
+            code2 = button4;
+            setColor(0, 0, 0);
+            digitalWrite(sound2, HIGH);
+            delay(500);
+          }
+          else {
+            if (set3 == 0) {
+              Serial.println("Code3 Set to Button4");
+              set3 = 1;
+              code3 = button4;
+              setColor(0, 0, 0);
+              digitalWrite(sound2, HIGH);
+              delay(500);
+            }
+            else {
+              if (set4 == 0) {
+                Serial.println("Code4 Set to Button4");
+                set4 = 1;
+                code4 = button4;
+                done = 1;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   if (done == 1) {
     // This happens when a new code is set:
     Serial.println("Successfully Set New Code!");
@@ -411,16 +620,16 @@ void loop() {
     if (digitalRead(motion) == true) {
       Serial.println("Alarm Triggered");
       setColor(255, 0, 0);
-      tone(sound, 2000);
+      //tone(sound, 2000);
       delay(100);
       setColor(0, 0, 0);
-      noTone(sound);
+      //noTone(sound);
       delay(50);
       setColor(255, 0, 0);
-      tone(sound, 1000);
+      //tone(sound, 1000);
       delay(100);
       setColor(0, 0, 0);
-      noTone(sound);
+      //noTone(sound);
       delay(50);
     }
     // This keeps your light on when certain states are present:
@@ -452,49 +661,3 @@ void setColor(int red, int green, int blue) {
   analogWrite(bluePin, blue);
 }
 // WOW! You finally made it! Welcome to the end.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// JK, this is the end. Welcome to line 500 because I felt like it. :-)
