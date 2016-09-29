@@ -760,4 +760,4 @@ void setColor(int red, int green, int blue) {
   analogWrite(greenPin, green);
   analogWrite(bluePin, blue);
 }
-// WOW! You finally made it! Welcome to the end.
+// WOW! You finally made it! Welcome to the end. ~
