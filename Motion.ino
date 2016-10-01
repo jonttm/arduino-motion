@@ -1,9 +1,7 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.4.10 - Remote Control Revolution
-
-  ***The Serial Output is currently not setup.***
+  Version 1.4.11 - Remote Control Revolution
 
   Manual:
   Before using make sure and double check the setup below. Also, make sure all your variables for pins are correct.
@@ -43,6 +41,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.4.11 - Added Serial Output and made set code a bit nicer.
   1.4.10 - Fixed a bug where you couldn't enter a number twice.
   1.4.9 - Updated all text for new version and removed old code.
   1.4.8 - Fixed some more small but annoying bugs.
@@ -174,6 +173,8 @@ void setup() {
   Serial.begin(9600);           // Start Serial Connection.
   irrecv.enableIRIn();          // Start IR Reciever.
   setColor(0, 255, 0);          // Set the LED to green.
+  Serial.println("System Ready");
+  Serial.println("Please enter your code.");
 }
 
 // Run this code repeatably:
@@ -254,6 +255,8 @@ top:
                 pass2 = 0;
                 pass3 = 0;
                 pass4 = 0;
+                Serial.println("Code Correct");
+                Serial.println("Press any button to trigger an action.");
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(50);
@@ -268,6 +271,7 @@ top:
                 goto top;
               }
               else {                      // Otherwise reset the code entry and don't allow additional input.
+                Serial.println("Code Incorrect");
                 correct = 0;
                 code = 0;
                 pass1 = 0;
@@ -283,6 +287,7 @@ top:
               }
             }
             else {
+              Serial.println("Code Incorrect");
               correct = 0;
               code = 0;
               pass1 = 0;
@@ -298,6 +303,7 @@ top:
             }
           }
           else {
+            Serial.println("Code Incorrect");
             correct = 0;
             code = 0;
             pass1 = 0;
@@ -313,6 +319,7 @@ top:
           }
         }
         else {
+          Serial.println("Code Incorrect");
           correct = 0;
           code = 0;
           pass1 = 0;
@@ -333,6 +340,7 @@ top:
           armed = 0;
           set = 1;                                // Start set mode.
           correct = 0;                            // Cancel additional input.
+          Serial.println("Set your new code.");
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(200);
@@ -349,6 +357,8 @@ top:
         if (results.value == remotearm) {         // If the arm button is pressed.
           armed = 1;                              // Start armed mode.
           correct = 0;                            // Cancel additional input.
+          Serial.println("Please leave now!");
+          Serial.println("System arming in...");
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(1000);
@@ -362,6 +372,7 @@ top:
           digitalWrite(sound2, LOW);
 #ifdef FAST_COUNTDOWN
           for (int i = 0; i <= 5; i++) {          // Countdown for 5 seconds.
+            Serial.println(i);
             delay(500);
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
@@ -371,6 +382,7 @@ top:
           }
 #else
           for (int i = 0; i <= 30; i++) {         // If slow countdown is selected then countdown for 20 seconds.
+            Serial.println(i);
             delay(500);
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
@@ -379,6 +391,7 @@ top:
             digitalWrite(sound2, LOW);
           }
 #endif
+          Serial.println("System Armed");
           delay(500);
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
@@ -391,6 +404,7 @@ top:
           alarm = 0;                              // Stop the alarm if it was triggered.
           armed = 0;                              // Disable armed mode.
           correct = 0;                            // Cancel additional input.
+          Serial.println("System Disarmed");
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(1000);
@@ -407,6 +421,7 @@ top:
         if (results.value == remotealarm) {       // If the alarm button is pressed.
           alarm = 1;                              // Trigger the alarm.
           correct = 0;                            // Cancel additional input.
+          Serial.println("Alarm Triggered!");
           setColor(255, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -442,12 +457,15 @@ top:
           code2 = remote2;
           code3 = remote3;
           code4 = remote4;
+          ok = 0;
+          Serial.println("System Reseting");
           digitalWrite(sound2, HIGH);
           delay(30);
           setColor(0, 0, 0);
           digitalWrite(sound2, LOW);
           delay(8000);
           setColor(0, 255, 0);
+          Serial.println("System Ready");
           goto top;
         }
         if (results.value == remotestop) {        // If the stop button is pressed while code has been entered.
@@ -468,6 +486,8 @@ top:
           setcode2 = 0;
           setcode3 = 0;
           setcode4 = 0;
+          ok = 0;
+          Serial.println("Current Action Canceled");
           setColor(255, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(300);
@@ -494,6 +514,8 @@ top:
         setcode2 = 0;
         setcode3 = 0;
         setcode4 = 0;
+        ok = 0;
+        Serial.println("Current Action Canceled");
         setColor(255, 0, 0);
         digitalWrite(sound2, HIGH);
         delay(300);
@@ -507,6 +529,7 @@ top:
         if (set1 == 0) {                          // If the first code has not been set.
           set1 = 1;                               // The first code has been set.
           setcode1 = remote0;                     // Set the first code to button zero.
+          ok++;                                   // One number has been entered.
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -518,6 +541,7 @@ top:
           if (set2 == 0) {                        // If the second code has not been set.
             set2 = 1;                             // The second code has been set.
             setcode2 = remote0;                   // Set the second code to button zero.
+            ok++;                                 // One number has been entered.
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -529,7 +553,8 @@ top:
             if (set3 == 0) {                      // If the third code has not been set.
               set3 = 1;                           // The third code has been set.
               setcode3 = remote0;                 // Set the third code to button zero.
-              setColor(0, 0, 0);
+              ok++;                               // One number has been entered.
+              setColor(0, 0, 0);  
               digitalWrite(sound2, HIGH);
               delay(100);
               setColor(0, 0, 255);
@@ -540,6 +565,7 @@ top:
               if (set4 == 0) {                    // If the fourth code has not been set.
                 set4 = 1;                         // The fourth code has been set.
                 setcode4 = remote0;               // Set the third code to button zero.
+                ok++;                             // One number has been entered.
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -555,6 +581,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote1;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -566,6 +593,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote1;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -577,6 +605,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote1;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -588,6 +617,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote1;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -603,6 +633,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote2;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -614,6 +645,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote2;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -625,6 +657,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote2;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -636,6 +669,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote2;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -651,6 +685,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote3;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -662,6 +697,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote3;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -673,6 +709,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote3;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -684,6 +721,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote3;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -699,6 +737,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote4;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -710,6 +749,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote4;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -721,6 +761,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote4;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -732,6 +773,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote4;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -747,6 +789,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote5;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -758,6 +801,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote5;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -769,6 +813,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote5;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -780,6 +825,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote5;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -795,6 +841,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote6;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -806,6 +853,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote6;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -817,6 +865,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote6;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -828,6 +877,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote6;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -843,6 +893,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote7;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -854,6 +905,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote7;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -865,6 +917,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote7;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -876,6 +929,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote7;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -891,6 +945,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote8;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -902,6 +957,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote8;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -913,6 +969,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote8;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -924,6 +981,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote8;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -939,6 +997,7 @@ top:
         if (set1 == 0) {
           set1 = 1;
           setcode1 = remote9;
+                ok++;
           setColor(0, 0, 0);
           digitalWrite(sound2, HIGH);
           delay(100);
@@ -950,6 +1009,7 @@ top:
           if (set2 == 0) {
             set2 = 1;
             setcode2 = remote9;
+                ok++;
             setColor(0, 0, 0);
             digitalWrite(sound2, HIGH);
             delay(100);
@@ -961,6 +1021,7 @@ top:
             if (set3 == 0) {
               set3 = 1;
               setcode3 = remote9;
+                ok++;
               setColor(0, 0, 0);
               digitalWrite(sound2, HIGH);
               delay(100);
@@ -972,6 +1033,7 @@ top:
               if (set4 == 0) {
                 set4 = 1;
                 setcode4 = remote9;
+                ok++;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -983,6 +1045,11 @@ top:
           }
         }
       }
+      if (ok == 4) {
+        setColor(0, 0, 0);
+        delay(50);
+        setColor(0, 0, 255);
+        Serial.println("Press save or cancel to continue.");
       if (results.value == remoteok) {
         if (set1 == 1) {
           if (set2 == 1) {
@@ -1001,6 +1068,7 @@ top:
                 set3 = 0;
                 set4 = 0;
                 set = 0;
+                ok = 0;
                 setColor(0, 0, 0);
                 digitalWrite(sound2, HIGH);
                 delay(100);
@@ -1020,6 +1088,7 @@ top:
                 digitalWrite(sound2, LOW);
                 goto top;
               }
+              }
             }
           }
         }
@@ -1030,6 +1099,7 @@ top:
     setColor(255, 0, 0);
     if (digitalRead(motion) == true) {    // If the motion sensor is triggered.
       alarm = 1;                          // Trigger the alarm.
+      Serial.println("Alarm Triggered!");
     }
   }
   if (alarm == 1) {                       // If the alarm is triggered.
