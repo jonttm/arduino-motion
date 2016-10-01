@@ -1,7 +1,7 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.4.11 - Remote Control Revolution
+  Version 1.4 Dev 11 - Remote Control Revolution
 
   Manual:
   Before using make sure and double check the setup below. Also, make sure all your variables for pins are correct.
@@ -41,34 +41,17 @@
   1.0 - Motion!
 
   Changelog:
-  1.4.11 - Added Serial Output and made set code a bit nicer.
-  1.4.10 - Fixed a bug where you couldn't enter a number twice.
-  1.4.9 - Updated all text for new version and removed old code.
-  1.4.8 - Fixed some more small but annoying bugs.
-  1.4.7 - Fixed literally the most stupid bugs in the world.
-  1.4.6 - Double checked and made some finishing touches
-  1.4.5 - Added the alarm and armed functions.
-  1.4.4 - Added the new set code function.
-  1.4.3 - Updated some text and descriptions to reflect new program.
-  1.4.2 - Added the new primary interface: Enter Code, Select Action
-  1.4.1 - Starting over and making the remote control primary.
-  1.3.8 - Made the description cooler and added manual, version history.
-  1.3.7 - Fixed the button code running when remote was pressed.
-  1.3.6 - Fixed tone() conflict with IRremote.
-  1.3.5 - Fixed some important bugs.
-  1.3.4 - Made it so the Remote is separate from the Buttons.
-  1.3.3 - Told the IR Code to reconsider why it won't work.
-  1.3.2 - Added some IR stuff I forgot.
-  1.3.1 - Added IR Remote Input that doesn't work
-  1.2.4 - Added a bunch of text.
-  1.2.3 - Small bug fixes.
-  1.2.2 - Fixed the set mode.
-  1.2.1 - Added a broken set mode.
-  1.1.3 - Fixed a lot of small bugs.
-  1.1.2 - Made the passcode system great again.
-  1.1.1 - Now you press 4 buttons instead of 1 to arm.
-  1.0.2 - Made a arming system with the press of a button.
-  1.0.1 - Made a motion sensor alarm.
+  1.4_11 - Added Serial Output and made set code a bit nicer.
+  1.4_10 - Fixed a bug where you couldn't enter a number twice.
+  1.4_9 - Updated all text for new version and removed old code.
+  1.4_8 - Fixed some more small but annoying bugs.
+  1.4_7 - Fixed literally the most stupid bugs in the world.
+  1.4_6 - Double checked and made some finishing touches
+  1.4_5 - Added the alarm and armed functions.
+  1.4_4 - Added the new set code function.
+  1.4_3 - Updated some text and descriptions to reflect new program.
+  1.4_2 - Added the new primary interface: Enter Code, Select Action
+  1.4_1 - Starting over and making the remote control primary.
 
   Stuff Required:
   - IR Sensor
