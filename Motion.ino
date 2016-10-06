@@ -1,7 +1,7 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.4 Beta 14 - Remote Control Revolution
+  Version 1.4 Beta 15 - Remote Control Revolution
 
   Manual:
   Before using make sure and double check the setup below. Also, make sure all your variables for pins are correct.
@@ -41,6 +41,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.4_15 - Made very small changes and finished v1.4.
   1.4_14 - General improvements and polishing.
   1.4_13 - Every keypad button will count as a tried code entry.
   1.4_12 - Every keypad button makes a sound now.
@@ -167,6 +168,13 @@ void setup() {
 // Run this code repeatably:
 void loop() {
 top:
+  if (ok == 4) {
+    ok = 5;
+    setColor(0, 0, 0);
+    delay(50);
+    setColor(0, 0, 255);
+    Serial.println("Press save or cancel to continue.");
+  }
   delay(150);
   // When we receive an IR input:
   if (irrecv.decode(&results)) {
@@ -753,11 +761,7 @@ top:
           }
         }
       }
-      if (ok == 4) {
-        setColor(0, 0, 0);
-        delay(50);
-        setColor(0, 0, 255);
-        Serial.println("Press save or cancel to continue.");
+      if (ok == 5) {
         if (results.value == remoteok) {
           if (set1 == 1) {
             if (set2 == 1) {
@@ -777,6 +781,7 @@ top:
                   set4 = 0;
                   set = 0;
                   ok = 0;
+                  Serial.println("Successfully saved new code.");
                   setColor(0, 0, 0);
                   digitalWrite(sound2, HIGH);
                   delay(100);
@@ -922,7 +927,6 @@ top:
     delay(100);
     setColor(0, 0, 0);
     noTone(sound);
-    delay(50);
   }
 }
 
