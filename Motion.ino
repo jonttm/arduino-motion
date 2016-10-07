@@ -1,9 +1,17 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.4 Dev 15 - Remote Control Revolution
+  Version 1.5 Dev 1 - Keypad Simplification
+  
+  *************************************
+  ***THIS VERSION IS NOT FUNCTIONAL!***
+  *************************************
+  ***PLEASE USE GITHUB BRANCH STABLE***
+  *************************************
 
-  Manual:
+  Idea: I am trying to simplify code by using arrays for code entry and set code and using a keypad with remote.
+
+  **OLD** Manual:
   Before using make sure and double check the setup below. Also, make sure all your variables for pins are correct.
   At any time you can press the stop button to cancel the current action except to disable the alarm.
   For all actions type in your code then press any of the following buttons:
@@ -21,7 +29,7 @@
   The green light is disarm, the red light is armed, and the blue light is setting new code.
   For super specific details then read the serial output. (Click the magnifying glass in the in the upper right.)
 
-  Buttons:
+  **OLD** Buttons:
   Type in your custom buttons here so you don't forget them.
   [ VOL- ] = Disarm
   [ ►❚❚ ] = Trigger Alarm
@@ -34,6 +42,7 @@
   [ 1,2,3... ] Entire Keypad
 
   Versions:
+  1.5 - Keypad Simplification
   1.4 - Remote Control Revolution
   1.3 - The Remote Update
   1.2 - Customizable Settable Code!
@@ -41,23 +50,9 @@
   1.0 - Motion!
 
   Changelog:
-  1.4_15 - Made very small changes and finished v1.4.
-  1.4_14 - General improvements and polishing.
-  1.4_13 - Every keypad button will count as a tried code entry.
-  1.4_12 - Every keypad button makes a sound now.
-  1.4_11 - Added Serial Output and made set code a bit nicer.
-  1.4_10 - Fixed a bug where you couldn't enter a number twice.
-  1.4_9 - Updated all text for new version and removed old code.
-  1.4_8 - Fixed some more small but annoying bugs.
-  1.4_7 - Fixed literally the most stupid bugs in the world.
-  1.4_6 - Double checked and made some finishing touches
-  1.4_5 - Added the alarm and armed functions.
-  1.4_4 - Added the new set code function.
-  1.4_3 - Updated some text and descriptions to reflect new program.
-  1.4_2 - Added the new primary interface: Enter Code, Select Action
-  1.4_1 - Starting over and making the remote control primary.
+  1.5_1 - Started working with arrays and keypad.
 
-  Stuff Required:
+  **OLD** Stuff Required:
   - IR Sensor
   - IR Remote
   - PIR Motion Sensor
@@ -69,13 +64,46 @@
   - A Heck Ton of Wires!
   - 1 Resistor
 
-  Setup:
+  **OLD** Setup:
   Install the IR Remote library. You will need to do the stuff below so IRremote works with this code:
   Look up how to fix IRremote conflict with tone() and look up how to delete the prexisting IR library from Arduino.
   If you need help on how to setup the hardware then look it up, there should be instructions on everything.
   Input all your hardware pins below.
   Have fun!
 */
+
+// RGB LED pins
+int redPin = 11;        // Red Pin
+int greenPin = 10;      // Green Pin
+int bluePin = 9;        // Blue Pin
+
+// Please comment the line below if your LED is NOT a Common Anode.
+#define COMMON_ANODE
+
+// Motion and Sound Pins
+int motion = 2;                        // Motion Sensor Pin
+int sound = 7;                         // Speaker Pin
+int sound2 = 4;                        // Buzzer Pin
+int remote = 3;                        // IR Sensor
+
+// I am researching arrays and how to use keypads as I am going to add functionality for 
+
+// Set the LED to a new color:
+void setColor(int red, int green, int blue) {
+#ifdef COMMON_ANODE                               // If a common anode.
+  red = 255 - red;
+  green = 255 - green;
+  blue = 255 - blue;
+#endif
+  analogWrite(redPin, red);                       // Set the LED to the new color.
+  analogWrite(greenPin, green);
+  analogWrite(bluePin, blue);
+}
+
+// Wow! You made it to the end, congratulations.
+
+/**********  OLD CODE  **************************************************************************************************************
+
 
 // RGB LED pins
 int redPin = 11;        // Red Pin
@@ -929,17 +957,4 @@ top:
     noTone(sound);
   }
 }
-
-// Set the LED to a new color:
-void setColor(int red, int green, int blue) {
-#ifdef COMMON_ANODE                               // If a common anode.
-  red = 255 - red;
-  green = 255 - green;
-  blue = 255 - blue;
-#endif
-  analogWrite(redPin, red);                       // Set the LED to the new color.
-  analogWrite(greenPin, green);
-  analogWrite(bluePin, blue);
-}
-
-// Wow! You made it to the end, congratulations.
+*/
