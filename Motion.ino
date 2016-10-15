@@ -1,7 +1,7 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.5 Dev 1 - Keypad Simplification
+  Version 1.5 Dev 2 - Keypad Simplification
   
   *************************************
   ***THIS VERSION IS NOT FUNCTIONAL!***
@@ -50,6 +50,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.5_2 - Added my current pin layout and some starting code.
   1.5_1 - Started working with arrays and keypad.
 
   **OLD** Stuff Required:
@@ -72,37 +73,85 @@
   Have fun!
 */
 
-// RGB LED pins
-int redPin = 11;        // Red Pin
-int greenPin = 10;      // Green Pin
-int bluePin = 9;        // Blue Pin
+// All Hardware Pins:
+int beep = 19;      // Single Tone Beeper (Digital Output Only)
+int reset = 18;     // When you reset the system
+int error = 17;     // If an error like cancel action or wrong code
+int active = 16;    // Usually when press a button
+int status = 15;    // Simple on or off
+int motion = 14;    // Motion Sensor to trigger alarm
+int red = 13;       // Red RGB Pin
+int blue = 12;      // Blue RGB Pin
+int green = 11;     // Green RGB Pin
+int remote = 10;    // IR Sensor (Not Used for v1.5)
+int alarm = 9;      // Speaker for use with alarm (Compatible with tone)
 
-// Please comment the line below if your LED is NOT a Common Anode.
+// You will need these Libraries:
+#include <Keypad.h>       // http://www.arduino.cc/playground/uploads/Code/Keypad.zip
+#include <Password.h>     // http://www.arduino.cc/playground/uploads/Code/Password.zip
+#include <IRremote.h>     // Currently not used in v1.5
+
+// Keypad Layout:
+const byte ROWS = 4;
+const byte COLS = 3;
+
+// Keypad Keys:
+char keys[ROWS][COLS] = {
+  {'1','2','3'},
+  {'4','5','6'},
+  {'7','8','9'},
+  {'*','0','#'}
+};
+
+// Keypad Pins:
+byte rowPins[ROWS] = {8, 7, 6, 5};
+byte colPins[COLS] = {4, 3, 2};
+
+// Makes the keypad
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
 #define COMMON_ANODE
 
-// Motion and Sound Pins
-int motion = 2;                        // Motion Sensor Pin
-int sound = 7;                         // Speaker Pin
-int sound2 = 4;                        // Buzzer Pin
-int remote = 3;                        // IR Sensor
+void setup() {
+  Serial.begin(9600);
 
-// I am researching arrays and how to use keypads as I am going to add functionality for 
-
-// Set the LED to a new color:
-void setColor(int red, int green, int blue) {
-#ifdef COMMON_ANODE                               // If a common anode.
-  red = 255 - red;
-  green = 255 - green;
-  blue = 255 - blue;
-#endif
-  analogWrite(redPin, red);                       // Set the LED to the new color.
-  analogWrite(greenPin, green);
-  analogWrite(bluePin, blue);
+  // Check if a key is pressed:
+  keypad.addEventListener(keypadEvent);
 }
 
-// Wow! You made it to the end, congratulations.
+void loop() {
 
-/**********  OLD CODE  **************************************************************************************************************
+  // Get Current Key:
+  keypad.getKey();
+}
+
+// Prints the key pressed:
+void keypadEvent(KeypadEvent eKey) {
+  switch (keypad.getState()) {
+    case PRESSED:
+  Serial.print("Pressed: ");
+  Serial.println(eKey);
+  switch (eKey){
+    //case '*': checkPassword(); break;
+    //case '#': password.reset(); break;
+    //default: password.append(eKey);
+     }
+  }
+}
+
+// Set RGB Led Color:
+void setColor(int redColor, int greenColor, int blueColor) {
+#ifdef COMMON_ANODE
+  redColor = 255 - redColor;
+  greenColor = 255 - greenColor;
+  blueColor = 255 - blueColor;
+#endif
+  analogWrite(red, redColor);
+  analogWrite(green, greenColor);
+  analogWrite(blue, blueColor);
+}
+
+/**********  OLD CODE  ************************************************************************************************
 
 
 // RGB LED pins
