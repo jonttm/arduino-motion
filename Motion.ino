@@ -1,13 +1,15 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.5 Dev 2 - Keypad Simplification
+  Version 1.5 Dev 3 - Keypad Simplification
   
   *************************************
   ***THIS VERSION IS NOT FUNCTIONAL!***
   *************************************
   ***PLEASE USE GITHUB BRANCH STABLE***
   *************************************
+
+  Status: I made significant progress in this update, sorry for the slow start.
 
   Idea: I am trying to simplify code by using arrays for code entry and set code and using a keypad with remote.
 
@@ -50,6 +52,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.5_3 - Added basic set and enter code functionality.
   1.5_2 - Added my current pin layout and some starting code.
   1.5_1 - Started working with arrays and keypad.
 
@@ -91,6 +94,9 @@ int alarm = 9;      // Speaker for use with alarm (Compatible with tone)
 #include <Password.h>     // http://www.arduino.cc/playground/uploads/Code/Password.zip
 #include <IRremote.h>     // Currently not used in v1.5
 
+// Your default password:
+Password password = Password("1234");
+
 // Keypad Layout:
 const byte ROWS = 4;
 const byte COLS = 3;
@@ -110,7 +116,19 @@ byte colPins[COLS] = {4, 3, 2};
 // Makes the keypad
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
+// Common Anode RGB LED:
 #define COMMON_ANODE
+
+// Don't change this:
+bool setCode = false;
+bool armed = false;
+bool alarm = false;
+String code1 = "";
+String code2 = "";
+String code3 = "";
+String code4 = "";
+String code = "";
+int pressed = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -125,17 +143,67 @@ void loop() {
   keypad.getKey();
 }
 
-// Prints the key pressed:
-void keypadEvent(KeypadEvent eKey) {
-  switch (keypad.getState()) {
-    case PRESSED:
-  Serial.print("Pressed: ");
-  Serial.println(eKey);
-  switch (eKey){
-    //case '*': checkPassword(); break;
-    //case '#': password.reset(); break;
-    //default: password.append(eKey);
-     }
+void keypadEvent(KeypadEvent eKey) {  // Key pressed
+  if (setCode == true) {
+    switch (keypad.getState()) {
+      case PRESSED:
+      // LOUD NOISES
+      switch (eKey) {
+        case '*':
+        code = code1 + code2 + code3 + code4; // Set new code
+        password.set(code);
+        code = "";
+        code1 = "";
+        code2 = "";
+        code3 = "";
+        code4 = "";
+        break;
+        case '#':
+        code = "";
+        code1 = "";
+        code2 = "";
+        code3 = "";
+        code4 = "";
+        break;
+        default:
+        pressed++;
+        if (pressed == 1) {
+          code1 = eKey;
+        }
+        if (pressed == 2) {
+          code2 = eKey;
+        }
+        if (pressed == 3) {
+          code3 = eKey;
+        }
+        if (pressed == 4) {
+          code4 = eKey;
+        }
+      }
+    }
+  }
+  else {
+  switch (keypad.getState()) {        // If Key Pressed
+    case PRESSED:                     
+    // Key Pressed Noise!!!
+    switch (eKey) {                     // 
+      case '*': 
+      setPassword(); // set pass
+      break; 
+      case '#': 
+      checkPassword(); // arm/disarm
+      break; 
+      default: 
+      password.append(eKey); // adding the key pressed to guess password
+    }
+  }
+  }
+}
+
+void setPassword() {
+  if (password.evaluate()) {
+    setCode == true;
+    
   }
 }
 
@@ -151,7 +219,7 @@ void setColor(int redColor, int greenColor, int blueColor) {
   analogWrite(blue, blueColor);
 }
 
-/**********  OLD CODE  ************************************************************************************************
+/**********  OLD CODE  *****************************************************************
 
 
 // RGB LED pins
