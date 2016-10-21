@@ -1,7 +1,7 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.5 Dev 3 - Keypad Simplification
+  Version 1.5 Dev 4 - Keypad Simplification
   
   *************************************
   ***THIS VERSION IS NOT FUNCTIONAL!***
@@ -9,7 +9,7 @@
   ***PLEASE USE GITHUB BRANCH STABLE***
   *************************************
 
-  Status: I made significant progress in this update, sorry for the slow start.
+  Status: The current code should work with serial output, but I can't test that because my keypad is broken.
 
   Idea: I am trying to simplify code by using arrays for code entry and set code and using a keypad with remote.
 
@@ -52,6 +52,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.5_4 - Corrected and finished basic set and enter code.
   1.5_3 - Added basic set and enter code functionality.
   1.5_2 - Added my current pin layout and some starting code.
   1.5_1 - Started working with arrays and keypad.
@@ -87,7 +88,7 @@ int red = 13;       // Red RGB Pin
 int blue = 12;      // Blue RGB Pin
 int green = 11;     // Green RGB Pin
 int remote = 10;    // IR Sensor (Not Used for v1.5)
-int alarm = 9;      // Speaker for use with alarm (Compatible with tone)
+int alert = 9;      // Speaker for use with alarm (Compatible with tone)
 
 // You will need these Libraries:
 #include <Keypad.h>       // http://www.arduino.cc/playground/uploads/Code/Keypad.zip
@@ -123,11 +124,11 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 bool setCode = false;
 bool armed = false;
 bool alarm = false;
-String code1 = "";
-String code2 = "";
-String code3 = "";
-String code4 = "";
-String code = "";
+char code[4] = "1234";
+char code1[1] = "1";
+char code2[1] = "1";
+char code3[1] = "1";
+char code4[1] = "1";
 int pressed = 0;
 
 void setup() {
@@ -148,36 +149,44 @@ void keypadEvent(KeypadEvent eKey) {  // Key pressed
     switch (keypad.getState()) {
       case PRESSED:
       // LOUD NOISES
+      Serial.print("Key: ");
+      Serial.println(eKey);
       switch (eKey) {
         case '*':
-        code = code1 + code2 + code3 + code4; // Set new code
+        code[0] = '\0';
+        strcat(code, code1);
+        strcat(code, code2);
+        strcat(code, code3);
+        strcat(code, code4);
         password.set(code);
-        code = "";
-        code1 = "";
-        code2 = "";
-        code3 = "";
-        code4 = "";
+        Serial.print("New Code: ");
+        Serial.println(code);
+        code[0] = "1234";
+        code1[0] = "1";
+        code2[0] = "2";
+        code3[0] = "3";
+        code4[0] = "4";
         break;
         case '#':
-        code = "";
-        code1 = "";
-        code2 = "";
-        code3 = "";
-        code4 = "";
+        code[0] = "1234";
+        code1[0] = "1";
+        code2[0] = "2";
+        code3[0] = "3";
+        code4[0] = "4";
         break;
         default:
         pressed++;
         if (pressed == 1) {
-          code1 = eKey;
+          code1[0] = eKey;
         }
         if (pressed == 2) {
-          code2 = eKey;
+          code2[0] = eKey;
         }
         if (pressed == 3) {
-          code3 = eKey;
+          code3[0] = eKey;
         }
         if (pressed == 4) {
-          code4 = eKey;
+          code4[0] = eKey;
         }
       }
     }
@@ -186,7 +195,9 @@ void keypadEvent(KeypadEvent eKey) {  // Key pressed
   switch (keypad.getState()) {        // If Key Pressed
     case PRESSED:                     
     // Key Pressed Noise!!!
-    switch (eKey) {                     // 
+    Serial.print("Key: ");
+    Serial.println(eKey);
+    switch (eKey) {                     
       case '*': 
       setPassword(); // set pass
       break; 
@@ -199,11 +210,35 @@ void keypadEvent(KeypadEvent eKey) {  // Key pressed
   }
   }
 }
-
-void setPassword() {
+  
+void setPassword() {        // set pass
   if (password.evaluate()) {
     setCode == true;
-    
+    // CORRECT pass
+    Serial.println("Set New Code");
+  }
+  else {
+    password.reset();
+    // incorrect
+    Serial.println("Incorrect Code");
+  }
+}
+void checkPassword() {      // arm/disarm
+  if (password.evaluate()) {
+    if (armed == true) {
+      armed = false;
+      Serial.println("Disarmed!");
+    }
+    else {
+      armed = true;
+      Serial.println("Armed!");
+    }
+    // CORRECT pass
+  }
+  else {
+    password.reset();
+    // incorrect
+    Serial.println("Incorrect Code");
   }
 }
 
