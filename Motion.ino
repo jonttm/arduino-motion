@@ -1,7 +1,7 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.5 Dev 4 - Keypad Simplification
+  Version 1.5 Dev 5 - Keypad Simplification
   
   *************************************
   ***THIS VERSION IS NOT FUNCTIONAL!***
@@ -9,7 +9,8 @@
   ***PLEASE USE GITHUB BRANCH STABLE***
   *************************************
 
-  Status: The current code should work with serial output, but I can't test that because my keypad is broken.
+  Status: Yes! I finished the awesome set code and I have a working keypad now.
+  Goal Acheived: To minimize the set code. From 500 lines to about 30. :-D
 
   Idea: I am trying to simplify code by using arrays for code entry and set code and using a keypad with remote.
 
@@ -52,6 +53,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.5_5 - Fixed all bugs and made fully working set code.
   1.5_4 - Corrected and finished basic set and enter code.
   1.5_3 - Added basic set and enter code functionality.
   1.5_2 - Added my current pin layout and some starting code.
@@ -124,12 +126,8 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 bool setCode = false;
 bool armed = false;
 bool alarm = false;
-char code[4] = "1234";
-char code1[1] = "1";
-char code2[1] = "1";
-char code3[1] = "1";
-char code4[1] = "1";
-int pressed = 0;
+char code[5];
+byte pressed;
 
 void setup() {
   Serial.begin(9600);
@@ -146,55 +144,43 @@ void loop() {
 
 void keypadEvent(KeypadEvent eKey) {  // Key pressed
   if (setCode == true) {
+    if (armed == false) {
     switch (keypad.getState()) {
       case PRESSED:
-      // LOUD NOISES
+      // SOUND: Set Code Key Pressed
       Serial.print("Key: ");
       Serial.println(eKey);
       switch (eKey) {
         case '*':
-        code[0] = '\0';
-        strcat(code, code1);
-        strcat(code, code2);
-        strcat(code, code3);
-        strcat(code, code4);
+        code[4] = '\0';
         password.set(code);
         Serial.print("New Code: ");
+        // SOUND: Successfully Set New Code
         Serial.println(code);
-        code[0] = "1234";
-        code1[0] = "1";
-        code2[0] = "2";
-        code3[0] = "3";
-        code4[0] = "4";
+        setCode = false;
+        pressed = 0;
         break;
         case '#':
-        code[0] = "1234";
-        code1[0] = "1";
-        code2[0] = "2";
-        code3[0] = "3";
-        code4[0] = "4";
+        code[0] = "";
+        setCode = false;
+        pressed = 0;
+        Serial.print("Canceled");
+        // SOUND: Set Code Canceled
         break;
         default:
+        code[pressed] = eKey;
         pressed++;
-        if (pressed == 1) {
-          code1[0] = eKey;
-        }
-        if (pressed == 2) {
-          code2[0] = eKey;
-        }
-        if (pressed == 3) {
-          code3[0] = eKey;
-        }
-        if (pressed == 4) {
-          code4[0] = eKey;
-        }
       }
+    }
+    }
+    else {
+      // SOUND: Can't Set Code, System Armed
     }
   }
   else {
   switch (keypad.getState()) {        // If Key Pressed
     case PRESSED:                     
-    // Key Pressed Noise!!!
+    // SOUND: Enter Code Key Pressed
     Serial.print("Key: ");
     Serial.println(eKey);
     switch (eKey) {                     
@@ -213,13 +199,14 @@ void keypadEvent(KeypadEvent eKey) {  // Key pressed
   
 void setPassword() {        // set pass
   if (password.evaluate()) {
-    setCode == true;
-    // CORRECT pass
+    setCode = true;
+    password.reset();
+    // SOUND: Set Code Correct Pass
     Serial.println("Set New Code");
   }
   else {
     password.reset();
-    // incorrect
+    // SOUND: Set Code Incorrect Pass
     Serial.println("Incorrect Code");
   }
 }
@@ -228,16 +215,19 @@ void checkPassword() {      // arm/disarm
     if (armed == true) {
       armed = false;
       Serial.println("Disarmed!");
+      // SOUND: Disarmed
     }
     else {
       armed = true;
       Serial.println("Armed!");
+      // SOUND: Armed
     }
-    // CORRECT pass
+    password.reset();
+    // SOUND: Correct Pass
   }
   else {
     password.reset();
-    // incorrect
+    // SOUND: Incorrect Pass
     Serial.println("Incorrect Code");
   }
 }
