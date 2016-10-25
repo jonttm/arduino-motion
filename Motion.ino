@@ -2,7 +2,7 @@
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
   Version 1.5 Dev 5 - Keypad Simplification
-  
+
   *************************************
   ***THIS VERSION IS NOT FUNCTIONAL!***
   *************************************
@@ -106,10 +106,10 @@ const byte COLS = 3;
 
 // Keypad Keys:
 char keys[ROWS][COLS] = {
-  {'1','2','3'},
-  {'4','5','6'},
-  {'7','8','9'},
-  {'*','0','#'}
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'},
+  {'*', '0', '#'}
 };
 
 // Keypad Pins:
@@ -145,58 +145,59 @@ void loop() {
 void keypadEvent(KeypadEvent eKey) {  // Key pressed
   if (setCode == true) {
     if (armed == false) {
-    switch (keypad.getState()) {
-      case PRESSED:
-      // SOUND: Set Code Key Pressed
-      Serial.print("Key: ");
-      Serial.println(eKey);
-      switch (eKey) {
-        case '*':
-        code[4] = '\0';
-        password.set(code);
-        Serial.print("New Code: ");
-        // SOUND: Successfully Set New Code
-        Serial.println(code);
-        setCode = false;
-        pressed = 0;
-        break;
-        case '#':
-        code[0] = "";
-        setCode = false;
-        pressed = 0;
-        Serial.print("Canceled");
-        // SOUND: Set Code Canceled
-        break;
-        default:
-        code[pressed] = eKey;
-        pressed++;
+      switch (keypad.getState()) {
+        case PRESSED:
+          // SOUND: Set Code Key Pressed
+          Serial.print("Key: ");
+          Serial.println(eKey);
+          switch (eKey) {
+            case '*':
+              code[4] = '\0';
+              password.set(code);
+              Serial.print("New Code: ");
+              // SOUND: Successfully Set New Code
+              Serial.println(code);
+              setCode = false;
+              pressed = 0;
+              break;
+            case '#':
+              code[0] = "";
+              setCode = false;
+              pressed = 0;
+              Serial.print("Canceled");
+              // SOUND: Set Code Canceled
+              break;
+            default:
+              code[pressed] = eKey;
+              pressed++;
+
+          }
       }
-    }
     }
     else {
       // SOUND: Can't Set Code, System Armed
     }
   }
   else {
-  switch (keypad.getState()) {        // If Key Pressed
-    case PRESSED:                     
-    // SOUND: Enter Code Key Pressed
-    Serial.print("Key: ");
-    Serial.println(eKey);
-    switch (eKey) {                     
-      case '*': 
-      setPassword(); // set pass
-      break; 
-      case '#': 
-      checkPassword(); // arm/disarm
-      break; 
-      default: 
-      password.append(eKey); // adding the key pressed to guess password
+    switch (keypad.getState()) {        // If Key Pressed
+      case PRESSED:
+        // SOUND: Enter Code Key Pressed
+        Serial.print("Key: ");
+        Serial.println(eKey);
+        switch (eKey) {
+          case '*':
+            setPassword(); // set pass
+            break;
+          case '#':
+            checkPassword(); // arm/disarm
+            break;
+          default:
+            password.append(eKey); // adding the key pressed to guess password
+        }
     }
   }
-  }
 }
-  
+
 void setPassword() {        // set pass
   if (password.evaluate()) {
     setCode = true;
@@ -247,81 +248,81 @@ void setColor(int redColor, int greenColor, int blueColor) {
 /**********  OLD CODE  *****************************************************************
 
 
-// RGB LED pins
-int redPin = 11;        // Red Pin
-int greenPin = 10;      // Green Pin
-int bluePin = 9;        // Blue Pin
+  // RGB LED pins
+  int redPin = 11;        // Red Pin
+  int greenPin = 10;      // Green Pin
+  int bluePin = 9;        // Blue Pin
 
-// Please comment the line below if your LED is NOT a Common Anode.
-#define COMMON_ANODE
+  // Please comment the line below if your LED is NOT a Common Anode.
+  #define COMMON_ANODE
 
-// Please comment the line below if you want a slower arming time of 20 seconds.
-// Fast arming time is 5 seconds.
-#define FAST_COUNTDOWN
+  // Please comment the line below if you want a slower arming time of 20 seconds.
+  // Fast arming time is 5 seconds.
+  #define FAST_COUNTDOWN
 
-// Motion and Sound Pins
-int motion = 2;                        // Motion Sensor Pin
-int sound = 7;                         // Speaker Pin
-int sound2 = 4;                        // Buzzer Pin
-int remote = 3;                        // IR Sensor
+  // Motion and Sound Pins
+  int motion = 2;                        // Motion Sensor Pin
+  int sound = 7;                         // Speaker Pin
+  int sound2 = 4;                        // Buzzer Pin
+  int remote = 3;                        // IR Sensor
 
-// Button Pins
-int button1 = 13;                      // First Button
-int button2 = 12;                      // Second Button
-int button3 = 8;                       // Third Button
-int button4 = 6;                       // Fourth Button
-int buttonset = 5;                     // Button used to trigger set mode
-unsigned long remote0 = 16593103;      // Remote Keypad 0   (DEC VALUE)
-unsigned long remote1 = 16582903;      // Remote Keypad 1   (DEC VALUE)
-unsigned long remote2 = 16615543;      // Remote Keypad 2   (DEC VALUE)
-unsigned long remote3 = 16599223;      // Remote Keypad 3   (DEC VALUE)
-unsigned long remote4 = 16591063;      // Remote Keypad 4   (DEC VALUE)
-unsigned long remote5 = 16623703;      // Remote Keypad 5   (DEC VALUE)
-unsigned long remote6 = 16607383;      // Remote Keypad 6   (DEC VALUE)
-unsigned long remote7 = 16586983;      // Remote Keypad 7   (DEC VALUE)
-unsigned long remote8 = 16619623;      // Remote Keypad 8   (DEC VALUE)
-unsigned long remote9 = 16603303;      // Remote Keypad 9   (DEC VALUE)
-unsigned long remoteset = 16589023;    // Remote Set Code   (DEC VALUE)
-unsigned long remotestop = 16605343;   // Remote Cancel Current Action    (DEC VALUE)
-unsigned long remoteok = 16617583;     // Remote Save or Confirm          (DEC VALUE)
-unsigned long remotearm = 16597183;    // Remote Confirm Arm              (DEC VALUE)
-unsigned long remotedisarm = 16580863; // Remote Confirm Disarm           (DEC VALUE)
-unsigned long remotealarm = 16613503;  // Remote Trigger Alarm            (DEC VALUE)
-unsigned long remotereset = 16609423;  // Remote Reset Program            (DEC VALUE)
+  // Button Pins
+  int button1 = 13;                      // First Button
+  int button2 = 12;                      // Second Button
+  int button3 = 8;                       // Third Button
+  int button4 = 6;                       // Fourth Button
+  int buttonset = 5;                     // Button used to trigger set mode
+  unsigned long remote0 = 16593103;      // Remote Keypad 0   (DEC VALUE)
+  unsigned long remote1 = 16582903;      // Remote Keypad 1   (DEC VALUE)
+  unsigned long remote2 = 16615543;      // Remote Keypad 2   (DEC VALUE)
+  unsigned long remote3 = 16599223;      // Remote Keypad 3   (DEC VALUE)
+  unsigned long remote4 = 16591063;      // Remote Keypad 4   (DEC VALUE)
+  unsigned long remote5 = 16623703;      // Remote Keypad 5   (DEC VALUE)
+  unsigned long remote6 = 16607383;      // Remote Keypad 6   (DEC VALUE)
+  unsigned long remote7 = 16586983;      // Remote Keypad 7   (DEC VALUE)
+  unsigned long remote8 = 16619623;      // Remote Keypad 8   (DEC VALUE)
+  unsigned long remote9 = 16603303;      // Remote Keypad 9   (DEC VALUE)
+  unsigned long remoteset = 16589023;    // Remote Set Code   (DEC VALUE)
+  unsigned long remotestop = 16605343;   // Remote Cancel Current Action    (DEC VALUE)
+  unsigned long remoteok = 16617583;     // Remote Save or Confirm          (DEC VALUE)
+  unsigned long remotearm = 16597183;    // Remote Confirm Arm              (DEC VALUE)
+  unsigned long remotedisarm = 16580863; // Remote Confirm Disarm           (DEC VALUE)
+  unsigned long remotealarm = 16613503;  // Remote Trigger Alarm            (DEC VALUE)
+  unsigned long remotereset = 16609423;  // Remote Reset Program            (DEC VALUE)
 
-// Default Code (When Arduino is reset)
-unsigned long code1 = remote1;         // First Code
-unsigned long code2 = remote2;         // Second Code
-unsigned long code3 = remote3;         // Third Code
-unsigned long code4 = remote4;         // Fourth Code
+  // Default Code (When Arduino is reset)
+  unsigned long code1 = remote1;         // First Code
+  unsigned long code2 = remote2;         // Second Code
+  unsigned long code3 = remote3;         // Third Code
+  unsigned long code4 = remote4;         // Fourth Code
 
-// Default Variables (Don't touch any of these)
-int pass1 = 0;
-int pass2 = 0;
-int pass3 = 0;
-int pass4 = 0;
-int armed = 0;
-int code = 0;
-int alarm = 0;
-int correct = 0;
-int set = 0;
-int set1 = 0;
-int set2 = 0;
-int set3 = 0;
-int set4 = 0;
-int ok = 0;
-int irsound = 0;
-unsigned long setcode1 = 0;
-unsigned long setcode2 = 0;
-unsigned long setcode3 = 0;
-unsigned long setcode4 = 0;
-#include <IRremote.h>           // This isn't a variable.
-IRrecv irrecv(remote);          // Neither is this.
-decode_results results;         // Also, this.
-// Seriously, don't touch.
+  // Default Variables (Don't touch any of these)
+  int pass1 = 0;
+  int pass2 = 0;
+  int pass3 = 0;
+  int pass4 = 0;
+  int armed = 0;
+  int code = 0;
+  int alarm = 0;
+  int correct = 0;
+  int set = 0;
+  int set1 = 0;
+  int set2 = 0;
+  int set3 = 0;
+  int set4 = 0;
+  int ok = 0;
+  int irsound = 0;
+  unsigned long setcode1 = 0;
+  unsigned long setcode2 = 0;
+  unsigned long setcode3 = 0;
+  unsigned long setcode4 = 0;
+  #include <IRremote.h>           // This isn't a variable.
+  IRrecv irrecv(remote);          // Neither is this.
+  decode_results results;         // Also, this.
+  // Seriously, don't touch.
 
-// When the arduino starts:
-void setup() {
+  // When the arduino starts:
+  void setup() {
   // Setting all these pins to Output:
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
@@ -333,11 +334,11 @@ void setup() {
   setColor(0, 255, 0);          // Set the LED to green.
   Serial.println("System Ready");
   Serial.println("Please enter your code.");
-}
+  }
 
-// Run this code repeatably:
-void loop() {
-top:
+  // Run this code repeatably:
+  void loop() {
+  top:
   if (ok == 4) {
     ok = 5;
     setColor(0, 0, 0);
@@ -456,7 +457,7 @@ top:
           delay(150);
           setColor(255, 0, 0);
           digitalWrite(sound2, LOW);
-#ifdef FAST_COUNTDOWN
+  #ifdef FAST_COUNTDOWN
           for (int i = 0; i <= 5; i++) {          // Countdown for 5 seconds.
             Serial.println(i);
             delay(500);
@@ -466,7 +467,7 @@ top:
             setColor(255, 0, 0);
             digitalWrite(sound2, LOW);
           }
-#else
+  #else
           for (int i = 0; i <= 30; i++) {         // If slow countdown is selected then countdown for 20 seconds.
             Serial.println(i);
             delay(500);
@@ -476,7 +477,7 @@ top:
             setColor(255, 0, 0);
             digitalWrite(sound2, LOW);
           }
-#endif
+  #endif
           Serial.println("System Armed");
           delay(500);
           setColor(0, 0, 0);
@@ -1098,5 +1099,5 @@ top:
     setColor(0, 0, 0);
     noTone(sound);
   }
-}
+  }
 */
