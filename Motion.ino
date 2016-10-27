@@ -9,10 +9,9 @@
   ***PLEASE USE GITHUB BRANCH STABLE***
   *************************************
 
-  Status: Yes! I finished the awesome set code and I have a working keypad now.
-  Goal Acheived: To minimize the set code. From 500 lines to about 30. :-D
-
-  Idea: I am trying to simplify code by using arrays for code entry and set code and using a keypad with remote.
+  Dev Note: I've started to add the visual and audible feedback for the code, but it isn't done yet.
+            I am using a new activity function to simplify the code, so people just looking for how
+            the stuff works can see it right away without any clutter.
 
   **OLD** Manual:
   Before using make sure and double check the setup below. Also, make sure all your variables for pins are correct.
@@ -53,6 +52,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.5_6 - Started adding visual feedback through a new activity function.
   1.5_5 - Fixed all bugs and made fully working set code.
   1.5_4 - Corrected and finished basic set and enter code.
   1.5_3 - Added basic set and enter code functionality.
@@ -131,41 +131,34 @@ byte pressed;
 
 void setup() {
   Serial.begin(9600);
-
-  // Check if a key is pressed:
+  digitalWrite(beep, HIGH
   keypad.addEventListener(keypadEvent);
 }
 
 void loop() {
-
-  // Get Current Key:
+  if (armed == true) {
+    if (digitalRead(motion) == true) {
+      setMode("alarm");
+    }
+  }
+  if (alarm == true) {
+    setMode("alarm");
+  }
   keypad.getKey();
 }
 
-void keypadEvent(KeypadEvent eKey) {  // Key pressed
+void keypadEvent(KeypadEvent eKey) {
   if (setCode == true) {
     if (armed == false) {
       switch (keypad.getState()) {
         case PRESSED:
-          // SOUND: Set Code Key Pressed
-          Serial.print("Key: ");
-          Serial.println(eKey);
+          setMode("button");
           switch (eKey) {
             case '*':
-              code[4] = '\0';
-              password.set(code);
-              Serial.print("New Code: ");
-              // SOUND: Successfully Set New Code
-              Serial.println(code);
-              setCode = false;
-              pressed = 0;
+              setMode("setdone");
               break;
             case '#':
-              code[0] = "";
-              setCode = false;
-              pressed = 0;
-              Serial.print("Canceled");
-              // SOUND: Set Code Canceled
+              setMode("stopset");
               break;
             default:
               code[pressed] = eKey;
@@ -175,61 +168,119 @@ void keypadEvent(KeypadEvent eKey) {  // Key pressed
       }
     }
     else {
-      // SOUND: Can't Set Code, System Armed
+      setMode("wrong");
     }
   }
   else {
-    switch (keypad.getState()) {        // If Key Pressed
+    switch (keypad.getState()) {
       case PRESSED:
-        // SOUND: Enter Code Key Pressed
-        Serial.print("Key: ");
-        Serial.println(eKey);
+        setMode("button");
         switch (eKey) {
           case '*':
-            setPassword(); // set pass
+            setPassword();
             break;
           case '#':
-            checkPassword(); // arm/disarm
+            checkPassword();
             break;
           default:
-            password.append(eKey); // adding the key pressed to guess password
+            password.append(eKey);
         }
     }
   }
 }
 
-void setPassword() {        // set pass
+void setPassword() {
   if (password.evaluate()) {
-    setCode = true;
-    password.reset();
-    // SOUND: Set Code Correct Pass
-    Serial.println("Set New Code");
+    setMode("correct");
+    setMode("setcode");
   }
   else {
-    password.reset();
-    // SOUND: Set Code Incorrect Pass
-    Serial.println("Incorrect Code");
+    setMode("wrong");
   }
+  password.reset();
 }
-void checkPassword() {      // arm/disarm
+
+void checkPassword() {
   if (password.evaluate()) {
+    setMode("correct");
     if (armed == true) {
-      armed = false;
-      Serial.println("Disarmed!");
-      // SOUND: Disarmed
+      setMode("disarm");
     }
     else {
-      armed = true;
-      Serial.println("Armed!");
-      // SOUND: Armed
+      setMode("armed");
     }
-    password.reset();
-    // SOUND: Correct Pass
   }
   else {
-    password.reset();
-    // SOUND: Incorrect Pass
-    Serial.println("Incorrect Code");
+    setMode("wrong");
+  }
+  password.reset();
+}
+
+void setMode(String activity) {
+  if (activity == "button") {
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(100);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+  }
+  if (activity == "correct") {
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(100);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+    delay(200);
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(100);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+    delay(200);
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(100);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+  }
+  if (activity == "wrong") {
+    digitalWrite(beep, HIGH);
+    digitalWrite(error, HIGH);
+    delay(500);
+    digitalWrite(beep, LOW);
+    digitalWrite(error, LOW);
+    delay(200);
+    digitalWrite(beep, HIGH);
+    digitalWrite(error, HIGH);
+    delay(500);
+    digitalWrite(beep, LOW);
+    digitalWrite(error, LOW);
+  }
+  if (activity == "armed") {
+    
+  }
+  if (activity == "disarm") {
+    
+  }
+  if (activity == "setdone") {
+    code[4] = '\0';
+              password.set(code);
+              setCode = false;
+              pressed = 0;
+  }
+  if (activity == "stopset") {
+    code[0] = "";
+              setCode = false;
+              pressed = 0;
+  }
+  if (activity == "setcode") {
+    
+  }
+  if (activity == "error") {
+    
+  }
+  if (activity == "alarm") {
+    
   }
 }
 
