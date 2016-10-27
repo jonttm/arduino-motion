@@ -1,17 +1,15 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.5 Dev 6 - Keypad Simplification
+  Version 1.5 Dev 7 - Keypad Simplification
 
-  *************************************
-  ***THIS VERSION IS NOT FUNCTIONAL!***
-  *************************************
-  ***PLEASE USE GITHUB BRANCH STABLE***
-  *************************************
+  *******************************
+  ***THIS VERSION IS UNSTABLE!***
+  *******************************
+  ***USE GITHUB BRANCH STABLE!***
+  *******************************
 
-  Dev Note: I've started to add the visual and audible feedback for the code, but it isn't done yet.
-            I am using a new activity function to simplify the code, so people just looking for how
-            the stuff works can see it right away without any clutter.
+  Dev Note: Yay! The system should be working now! I am cleaning up the text content in the next update.
 
   **OLD** Manual:
   Before using make sure and double check the setup below. Also, make sure all your variables for pins are correct.
@@ -52,6 +50,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.5_7 - Finished visual feedback, done with main development.
   1.5_6 - Started adding visual feedback through a new activity function.
   1.5_5 - Fixed all bugs and made fully working set code.
   1.5_4 - Corrected and finished basic set and enter code.
@@ -81,11 +80,11 @@
 
 // All Hardware Pins:
 int beep = 19;      // Single Tone Beeper (Digital Output Only)
-int reset = 18;     // When you reset the system
-int error = 17;     // If an error like cancel action or wrong code
-int active = 16;    // Usually when press a button
-int status = 15;    // Simple on or off
-int motion = 14;    // Motion Sensor to trigger alarm
+int error = 18;     // When you cancel an action or wrong code.
+int warn = 17;      // Warning like for arming and disarming.
+int active = 16;    // Usually when press a button.
+int power = 15;     // Simple on or off.
+int motion = 14;    // Motion Sensor to trigger alarm.
 int red = 13;       // Red RGB Pin
 int blue = 12;      // Blue RGB Pin
 int green = 11;     // Green RGB Pin
@@ -99,6 +98,9 @@ int alert = 9;      // Speaker for use with alarm (Compatible with tone)
 
 // Your default password:
 Password password = Password("1234");
+
+// Fast Arming Countdown:
+#define FAST_COUNT
 
 // Keypad Layout:
 const byte ROWS = 4;
@@ -130,8 +132,21 @@ char code[5];
 byte pressed;
 
 void setup() {
+  pinMode(beep, OUTPUT);
+  pinMode(error, OUTPUT);
+  pinMode(warn, OUTPUT);
+  pinMode(active, OUTPUT);
+  pinMode(power, OUTPUT);
+  pinMode(red, OUTPUT);
+  pinMode(blue, OUTPUT);
+  pinMode(green, OUTPUT);
+  pinMode(alert, OUTPUT);
   Serial.begin(9600);
-  digitalWrite(beep, HIGH
+  setColor(0, 255, 0);
+  digitalWrite(power, HIGH);
+  digitalWrite(beep, HIGH);
+  delay(1000);
+  digitalWrite(beep, LOW);
   keypad.addEventListener(keypadEvent);
 }
 
@@ -225,6 +240,7 @@ void setMode(String activity) {
     digitalWrite(active, LOW);
   }
   if (activity == "correct") {
+    Serial.println("Code Correct!");
     digitalWrite(beep, HIGH);
     digitalWrite(active, HIGH);
     delay(100);
@@ -244,6 +260,7 @@ void setMode(String activity) {
     digitalWrite(active, LOW);
   }
   if (activity == "wrong") {
+    Serial.println("Code Incorrect");
     digitalWrite(beep, HIGH);
     digitalWrite(error, HIGH);
     delay(500);
@@ -257,30 +274,133 @@ void setMode(String activity) {
     digitalWrite(error, LOW);
   }
   if (activity == "armed") {
-    
+    Serial.println("System Arming in...");
+    #ifdef FAST_COUNT
+    for (int i = 5; i <= 0; i--) {
+      Serial.println(i);
+      digitalWrite(beep, HIGH);
+      digitalWrite(warn, HIGH);
+      delay(500);
+      digitalWrite(beep, LOW);
+      digitalWrite(warn, LOW);
+      delay(500);
+    }
+    #else
+    for (int i = 20; i <= 0; i--) {
+      Serial.println(i);
+      digitalWrite(beep, HIGH);
+      digitalWrite(warn, HIGH);
+      delay(500);
+      digitalWrite(beep, LOW);
+      digitalWrite(warn, LOW);
+      delay(500);
+    }
+    #endif
+    Serial.println("System Armed");
+    digitalWrite(beep, HIGH);
+    digitalWrite(warn, HIGH);
+    delay(1000);
+    digitalWrite(beep, LOW);
+    digitalWrite(warn, LOW);
+    setColor(255, 0, 0);
+    armed = true;
   }
   if (activity == "disarm") {
-    
+    Serial.println("System Disarmed");
+    digitalWrite(beep, HIGH);
+    digitalWrite(warn, HIGH);
+    delay(500);
+    digitalWrite(beep, LOW);
+    digitalWrite(warn, LOW);
+    delay(500);
+    Serial.println("System Disarmed");
+    digitalWrite(beep, HIGH);
+    digitalWrite(warn, HIGH);
+    delay(500);
+    digitalWrite(beep, LOW);
+    digitalWrite(warn, LOW);
+    delay(500);
+    setColor(0, 255, 0);
+    armed = false;
+    alarm = false;
   }
   if (activity == "setdone") {
+    Serial.println("Successfully Set New Code");
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(300);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+    delay(100);
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(300);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+    delay(100);
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(300);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+    delay(100);
+    setColor(0, 255, 0);
+    setCode = false;
     code[4] = '\0';
-              password.set(code);
-              setCode = false;
-              pressed = 0;
+    password.set(code);
+    pressed = 0;
   }
   if (activity == "stopset") {
+    Serial.println("Canceled Set New Code");
+    digitalWrite(beep, HIGH);
+    digitalWrite(error, HIGH);
+    delay(3000);
+    digitalWrite(beep, LOW);
+    digitalWrite(error, LOW);
+    setColor(0, 255, 0);
+    setCode = false;
     code[0] = "";
-              setCode = false;
-              pressed = 0;
+    pressed = 0;
   }
   if (activity == "setcode") {
-    
+    Serial.println("Please Set New Code");
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(150);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+    delay(300);
+    digitalWrite(beep, HIGH);
+    digitalWrite(active, HIGH);
+    delay(150);
+    digitalWrite(beep, LOW);
+    digitalWrite(active, LOW);
+    delay(300);
+    setColor(0, 0, 255);
+    setCode = true;
   }
   if (activity == "error") {
-    
+    Serial.println("Error: Something Went Wrong");
+    digitalWrite(beep, HIGH);
+    digitalWrite(error, HIGH);
+    delay(3000);
+    digitalWrite(beep, LOW);
+    digitalWrite(error, LOW);
   }
   if (activity == "alarm") {
-    
+    Serial.println("Alarm Triggered!");
+    digitalWrite(error, HIGH);
+    tone(alert, 2000);
+    delay(100);
+    digitalWrite(error, LOW);
+    noTone(alert);
+    delay(50);
+    digitalWrite(error, HIGH);
+    tone(alert, 1000);
+    delay(100);
+    digitalWrite(error, LOW);
+    noTone(alert);
+    alarm = true;
   }
 }
 
