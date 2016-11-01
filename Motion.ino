@@ -1,7 +1,7 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.5 Beta 8 - Keypad Simplification
+  Version 1.5 Beta 9 - Keypad Simplification
 
   Manual:
   Please note that the IR Remote is not supported in this version.
@@ -27,6 +27,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.5_9 - Added a lot of explanitory text, not done yet.
   1.5_8 - Added most descriptions and newified manual.
   1.5_7 - Finished visual feedback, done with main development.
   1.5_6 - Started adding visual feedback through a new activity function.
@@ -120,18 +121,17 @@ int timer = 5;
 
 //    DON'T CHANGE ANYTHING
 //    Seriously, Don't Touch.
-Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);   
-bool setCode = false;
-bool armed = false;
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS); // Make the Keypad.
+bool setCode = false;  // Make all the main variables.
+bool armed = false;    // These are bools (true or false).
 bool alarm = false;
-char code[5];
-byte pressed;
+char code[5];          // This is a char array.
+byte pressed;          // Normal intergers.
 int count;
 
-// Please Note: I will add text below in the next update.
-
+// Begin Setup:
 void setup() {
-  pinMode(beep, OUTPUT);
+  pinMode(beep, OUTPUT);      // Declare all the pins.
   pinMode(error, OUTPUT);
   pinMode(warn, OUTPUT);
   pinMode(active, OUTPUT);
@@ -140,43 +140,46 @@ void setup() {
   pinMode(blue, OUTPUT);
   pinMode(green, OUTPUT);
   pinMode(alert, OUTPUT);
-  Serial.begin(9600);
-  setColor(0, 255, 0);
+  pinMode(motion, INPUT);
+  Serial.begin(9600);         // Begin Serial Connection.
+  setColor(0, 255, 0);        // Some starting lights and noise.
   digitalWrite(power, HIGH);
   digitalWrite(beep, HIGH);
   delay(1000);
   digitalWrite(beep, LOW);
-  keypad.addEventListener(keypadEvent);
+  keypad.addEventListener(keypadEvent);     // Wait for keypad input.
 }
 
+// Looping Code:
 void loop() {
-  if (armed == true) {
-    if (digitalRead(motion) == true) {
-      setMode("alarm");
+  if (armed == true) {        // If the system is armed.
+    if (digitalRead(motion) == true) {      // Check if there is motion input.
+      setMode("alarm");       // Trigger alarm.
     }
   }
-  if (alarm == true) {
+  if (alarm == true) {        // If alarm is true, trigger alarm.
     setMode("alarm");
   }
-  keypad.getKey();
+  keypad.getKey();            // Get the keypad input key.
 }
 
+// Keypad Input:
 void keypadEvent(KeypadEvent eKey) {
-  if (setCode == true) {
-    if (armed == false) {
-      switch (keypad.getState()) {
+  if (setCode == true) {              // If set mode is true.
+    if (armed == false) {             // Make sure the system is not armed.
+      switch (keypad.getState()) {    // If keypad is pressed.
         case PRESSED:
-          setMode("button");
-          switch (eKey) {
-            case '*':
-              setMode("setdone");
+          setMode("button");          // Trigger button sound.
+          switch (eKey) {             // What key was pressed.
+            case '*':                 // If * was pressed.
+              setMode("setdone");     // Save the set code.
+              break;                  
+            case '#':                 // If # was pressed.
+              setMode("stopset");     // Cancel set mode.
               break;
-            case '#':
-              setMode("stopset");
-              break;
-            default:
-              code[pressed] = eKey;
-              pressed++;
+            default:                  // If any other key was pressed.
+              code[pressed] = eKey;   // Append the currently pressed key to the set code.
+              pressed++;              // One key has been pressed.
 
           }
       }
