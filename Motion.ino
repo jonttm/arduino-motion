@@ -1,7 +1,7 @@
 /*
   The Ultimate Alarm System!
   By JTTM (Jonathan Currier)
-  Version 1.5 Beta 9 - Keypad Simplification
+  Version 1.5 Beta 10 - Keypad Simplification
 
   Manual:
   Please note that the IR Remote is not supported in this version.
@@ -27,6 +27,7 @@
   1.0 - Motion!
 
   Changelog:
+  1.5_10 - Finished all explanitory text, finding any bugs.
   1.5_9 - Added a lot of explanitory text, not done yet.
   1.5_8 - Added most descriptions and newified manual.
   1.5_7 - Finished visual feedback, done with main development.
@@ -152,13 +153,13 @@ void setup() {
 
 // Looping Code:
 void loop() {
-  if (armed == true) {        // If the system is armed.
+  if (armed == true) {                      // If the system is armed.
     if (digitalRead(motion) == true) {      // Check if there is motion input.
-      setMode("alarm");       // Trigger alarm.
+      alarm = true;                         // Set alarm true.       
     }
   }
   if (alarm == true) {        // If alarm is true, trigger alarm.
-    setMode("alarm");
+    sound("alarm");
   }
   keypad.getKey();            // Get the keypad input key.
 }
@@ -169,13 +170,20 @@ void keypadEvent(KeypadEvent eKey) {
     if (armed == false) {             // Make sure the system is not armed.
       switch (keypad.getState()) {    // If keypad is pressed.
         case PRESSED:
-          setMode("button");          // Trigger button sound.
+          sound("button");            // Trigger button sound.
           switch (eKey) {             // What key was pressed.
             case '*':                 // If * was pressed.
-              setMode("setdone");     // Save the set code.
+              setCode = false;        // Set mode is now false.
+              code[4] = '\0';         // Add a null character to the code.
+              password.set(code);     // Save the new code.
+              pressed = 0;            // No keys have been pressed.
+              sound("setdone");       // Trigger setdone sound.
               break;                  
             case '#':                 // If # was pressed.
-              setMode("stopset");     // Cancel set mode.
+              setCode = false;        // Set mode is now false.
+              code[0] = "";           // Erase set code.
+              pressed = 0;            // No keys have been pressed.
+              sound("stopset");       // Trigger stopset sound.
               break;
             default:                  // If any other key was pressed.
               code[pressed] = eKey;   // Append the currently pressed key to the set code.
@@ -184,66 +192,73 @@ void keypadEvent(KeypadEvent eKey) {
           }
       }
     }
-    else {
-      setMode("wrong");
+    else {                  // If the system is armed.
+      sound("error");       // Warn the user.
     }
   }
-  else {
-    switch (keypad.getState()) {
-      case PRESSED:
-        setMode("button");
-        switch (eKey) {
-          case '*':
-            setPassword();
+  else {                                // If set mode is false.
+    switch (keypad.getState()) {        // If keypad is pressed.
+      case PRESSED:       
+        sound("button");                // Trigger button sound.
+        switch (eKey) {                 // What key was pressed.
+          case '*':                     // If * was pressed.
+            setPassword();              // Trigger set mode.
+            break;                      
+          case '#':                     // If # was pressed.
+            checkPassword();            // Check currently entered code.
             break;
-          case '#':
-            checkPassword();
-            break;
-          default:
-            password.append(eKey);
+          default:                      // If any other key was pressed.
+            password.append(eKey);      // Append the currently pressed key to the enter code.
         }
     }
   }
 }
 
+// Set Mode:
 void setPassword() {
-  if (password.evaluate()) {
-    setMode("correct");
-    setMode("setcode");
+  if (password.evaluate()) {    // If password is correct.
+    setCode = true;             // Set mode is now true.
+    sound("correct");           // Trigger correct sound.
+    sound("setcode");           // Trigger setcode sound.
   }
-  else {
-    setMode("wrong");
+  else {              // If password is incorrect.
+    sound("wrong");   // Trigger wrong sound.
   }
-  password.reset();
+  password.reset();   // Reset currently guessed password.
 }
 
+// Check Code:
 void checkPassword() {
-  if (password.evaluate()) {
-    setMode("correct");
-    if (armed == true) {
-      setMode("disarm");
+  if (password.evaluate()) {    // If password is correct.
+    sound("correct");           // Trigger correct sound.
+    if (armed == true) {        // If system is armed.
+      armed = false;            // Disarm the system.
+      alarm = false;            // Stop the alarm.
+      sound("disarm");          // Trigger disarm sound.
     }
-    else {
-      setMode("armed");
+    else {                // If system is disarmed.
+      armed = true;       // Arm the system.
+      sound("armed");     // Trigger armed sound.
     }
   }
-  else {
-    setMode("wrong");
+  else {                // If password is incorrect.
+    sound("wrong");     // Trigger wrong sound.
   }
-  password.reset();
+  password.reset();     // Reset the currently guessed password.
 }
 
-void setMode(String activity) {
-  if (activity == "button") {
-    digitalWrite(beep, HIGH);
-    digitalWrite(active, HIGH);
-    delay(100);
+// Trigger Sound:
+void sound(String activity) {       // Recieve a string for the type of sound.
+  if (activity == "button") {       // If sound is button. (Button pressed)
+    digitalWrite(beep, HIGH);       // Make some noise,
+    digitalWrite(active, HIGH);     // I'm not going to explain sounds
+    delay(100);                     // because it's pretty self-explanitory.
     digitalWrite(beep, LOW);
     digitalWrite(active, LOW);
   }
-  if (activity == "correct") {
-    Serial.println("Code Correct!");
-    digitalWrite(beep, HIGH);
+  if (activity == "correct") {        // If sound is correct. (Correct code)
+    Serial.println("Code Correct!");  // Also, print some text in the serial output.
+    digitalWrite(beep, HIGH);         // I won't explain this either.
     digitalWrite(active, HIGH);
     delay(100);
     digitalWrite(beep, LOW);
@@ -261,7 +276,7 @@ void setMode(String activity) {
     digitalWrite(beep, LOW);
     digitalWrite(active, LOW);
   }
-  if (activity == "wrong") {
+  if (activity == "wrong") {      // If sound is wrong. (Incorrect code)
     Serial.println("Code Incorrect");
     digitalWrite(beep, HIGH);
     digitalWrite(error, HIGH);
@@ -275,10 +290,10 @@ void setMode(String activity) {
     digitalWrite(beep, LOW);
     digitalWrite(error, LOW);
   }
-  if (activity == "armed") {
+  if (activity == "armed") {        // If sound is armed. (System armed)
     Serial.println("System Arming in...");
-    count = timer;
-    for (count <= 0; count--;) {
+    count = timer;                  // Count is now how much time the user wants.
+    for (count <= 0; count--;) {    // Run this until time is up.
       Serial.println(count);
       digitalWrite(beep, HIGH);
       digitalWrite(warn, HIGH);
@@ -293,10 +308,9 @@ void setMode(String activity) {
     delay(1000);
     digitalWrite(beep, LOW);
     digitalWrite(warn, LOW);
-    setColor(255, 0, 0);
-    armed = true;
+    setColor(255, 0, 0);          // This sets the RGB LED color.
   }
-  if (activity == "disarm") {
+  if (activity == "disarm") {     // If sound is disarm. (System disarmed)
     Serial.println("System Disarmed");
     digitalWrite(beep, HIGH);
     digitalWrite(warn, HIGH);
@@ -304,7 +318,6 @@ void setMode(String activity) {
     digitalWrite(beep, LOW);
     digitalWrite(warn, LOW);
     delay(500);
-    Serial.println("System Disarmed");
     digitalWrite(beep, HIGH);
     digitalWrite(warn, HIGH);
     delay(500);
@@ -312,10 +325,8 @@ void setMode(String activity) {
     digitalWrite(warn, LOW);
     delay(500);
     setColor(0, 255, 0);
-    armed = false;
-    alarm = false;
   }
-  if (activity == "setdone") {
+  if (activity == "setdone") {      // If sound is setdone. (Saving new code)
     Serial.println("Successfully Set New Code");
     digitalWrite(beep, HIGH);
     digitalWrite(active, HIGH);
@@ -336,12 +347,8 @@ void setMode(String activity) {
     digitalWrite(active, LOW);
     delay(100);
     setColor(0, 255, 0);
-    setCode = false;
-    code[4] = '\0';
-    password.set(code);
-    pressed = 0;
   }
-  if (activity == "stopset") {
+  if (activity == "stopset") {      // If sound is stopset. (Canceling set mode)
     Serial.println("Canceled Set New Code");
     digitalWrite(beep, HIGH);
     digitalWrite(error, HIGH);
@@ -349,11 +356,8 @@ void setMode(String activity) {
     digitalWrite(beep, LOW);
     digitalWrite(error, LOW);
     setColor(0, 255, 0);
-    setCode = false;
-    code[0] = "";
-    pressed = 0;
   }
-  if (activity == "setcode") {
+  if (activity == "setcode") {      // If sound is setcode. (Set new code)
     Serial.println("Please Set New Code");
     digitalWrite(beep, HIGH);
     digitalWrite(active, HIGH);
@@ -368,9 +372,8 @@ void setMode(String activity) {
     digitalWrite(active, LOW);
     delay(300);
     setColor(0, 0, 255);
-    setCode = true;
   }
-  if (activity == "error") {
+  if (activity == "error") {        // If sound is error. (System error or warning)
     Serial.println("Error: Something Went Wrong");
     digitalWrite(beep, HIGH);
     digitalWrite(error, HIGH);
@@ -378,10 +381,10 @@ void setMode(String activity) {
     digitalWrite(beep, LOW);
     digitalWrite(error, LOW);
   }
-  if (activity == "alarm") {
+  if (activity == "alarm") {        // If sound is alarm. (Alarm triggered)
     Serial.println("Alarm Triggered!");
     digitalWrite(error, HIGH);
-    tone(alert, 2000);
+    tone(alert, 2000);       // This uses the tone() library to make an alarm sound.
     delay(100);
     digitalWrite(error, LOW);
     noTone(alert);
@@ -391,17 +394,28 @@ void setMode(String activity) {
     delay(100);
     digitalWrite(error, LOW);
     noTone(alert);
-    alarm = true;
   }
 }
 
-void setColor(int redColor, int greenColor, int blueColor) {
-#ifdef COMMON_ANODE
-  redColor = 255 - redColor;
+// Set RGB LED Color:
+void setColor(int redColor, int greenColor, int blueColor) {    // Takes integers as colors.
+#ifdef COMMON_ANODE                 // If a common anode RGB LED.
+  redColor = 255 - redColor;        // Subtract all the colors.
   greenColor = 255 - greenColor;
   blueColor = 255 - blueColor;
-#endif
-  analogWrite(red, redColor);
+#endif                              
+  analogWrite(red, redColor);       // Set the color.
   analogWrite(green, greenColor);
   analogWrite(blue, blueColor);
 }
+
+// Good job! You made it to the end!
+// This is the third time I've rewritten my code.
+// Fun fact: The second edition was over 1000 lines long.
+// This version is only 400 lines long.
+// All including the description in the beginning.
+// Thanks for reading my code and I hope you found it useful!
+// - Editor's Note (By JTTM or Jonathan Currier)
+
+
+// Yes, I had to make it 420 lines long.
