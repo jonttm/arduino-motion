@@ -417,5 +417,4 @@ void setColor(int redColor, int greenColor, int blueColor) {    // Takes integer
 // Thanks for reading my code and I hope you found it useful!
 // - Editor's Note (By JTTM or Jonathan Currier)
 
-
 // Yes, I had to make it 420 lines long.
